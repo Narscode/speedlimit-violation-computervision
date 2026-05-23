@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeedGuard Vision — Interactive Real-time Surveillance Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-shield-halved brand-icon"></i>
+                <div class="brand-text">
+                    <h1>SpeedGuard</h1>
+                    <span>VISION PIPELINE</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="live-feed">
+                    <i class="fa-solid fa-video"></i>
+                    <span>Live Video Feed</span>
+                </button>
+                <button class="nav-item" data-tab="calibration">
+                    <i class="fa-solid fa-compass-drafting"></i>
+                    <span>Perspective Calibration</span>
+                </button>
+                <button class="nav-item" data-tab="analytics">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Violations Database</span>
+                </button>
+            </nav>
+
+            <div class="system-status">
+                <div class="status-header">SYSTEM ENGINE</div>
+                <div class="status-row">
+                    <span class="label">Hardware:</span>
+                    <span class="value hardware-badge"><i class="fa-brands fa-apple"></i> Apple MPS</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Status:</span>
+                    <span class="value status-dot-container"><span class="status-dot pulsing"></span> Active</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Core Temp:</span>
+                    <span class="value">42°C</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-title">
+                    <h2 id="page-title">Live Pipeline Telemetry</h2>
+                    <p id="page-subtitle">Real-time object detection and tracking analytics</p>
+                </div>
+                
+                <div class="quick-stats">
+                    <div class="quick-stat-box">
+                        <span class="stat-label">Active Detections</span>
+                        <span class="stat-value" id="stat-active-targets">0</span>
+                    </div>
+                    <div class="quick-stat-box">
+                        <span class="stat-label">Violations Logged</span>
+                        <span class="stat-value violation-alert" id="stat-violations">0</span>
+                    </div>
+                    <div class="quick-stat-box">
+                        <span class="stat-label">Processing Speed</span>
+                        <span class="stat-value" id="stat-fps">25.0 FPS</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Tab Content -->
+            <div class="tab-container">
+                
+                <!-- TAB 1: LIVE FEED & TELEMETRY -->
+                <section class="tab-content active" id="live-feed-tab">
+                    <div class="live-grid">
+                        <!-- Left Panel: Video Feed -->
+                        <div class="panel video-panel">
+                            <div class="panel-header">
+                                <span class="panel-title"><i class="fa-solid fa-tv"></i> Real-time Surveillance Stream</span>
+                                <div class="feed-modes">
+                                    <span class="mode-badge" id="mode-badge-cv">ACTIVE CV DETECTOR</span>
+                                </div>
+                            </div>
+                            
+                            <div class="canvas-container">
+                                <!-- CV Drawing Canvas -->
+                                <canvas id="cv-canvas" width="640" height="640"></canvas>
+                                <!-- Interactive Overlay for Virtual Gates -->
+                                <div class="canvas-overlay" id="live-canvas-overlay"></div>
+                                
+                                <div class="upload-overlay" id="upload-overlay">
+                                    <div class="dropzone-inner">
+                                        <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                                        <h3>Upload Traffic Video</h3>
+                                        <p>Drag & drop or click to upload MP4/AVI files</p>
+                                        <span class="btn btn-secondary">Choose File</span>
+                                        <input type="file" id="video-file-input" accept="video/*" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="video-controls">
+                                <button class="btn btn-primary" id="btn-demo"><i class="fa-solid fa-play"></i> Run Synthetic Traffic Demo</button>
+                                <button class="btn btn-secondary" id="btn-preloaded"><i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Pre-loaded Video</button>
+                                <button class="btn btn-secondary" id="btn-upload"><i class="fa-solid fa-upload"></i> Upload Video File</button>
+                                <button class="btn btn-danger" id="btn-stop" disabled><i class="fa-solid fa-square"></i> Stop Pipeline</button>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Controls & Live Log -->
+                        <div class="panel controls-panel">
+                            <div class="panel-header">
+                                <span class="panel-title"><i class="fa-solid fa-sliders"></i> Pipeline Parameters</span>
+                            </div>
+                            
+                            <div class="panel-body">
+                                <div class="control-group">
+                                    <label class="control-label" for="param-speed-limit">
+                                        <span>Speed Limit</span>
+                                        <span class="control-value" id="val-speed-limit">60 km/h</span>
+                                    </label>
+                                    <input type="range" class="control-slider" id="param-speed-limit" min="30" max="120" value="60">
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label" for="param-confidence">
+                                        <span>YOLOv8 Confidence Cutoff</span>
+                                        <span class="control-value" id="val-confidence">0.50</span>
+                                    </label>
+                                    <input type="range" class="control-slider" id="param-confidence" min="0.1" max="0.9" step="0.05" value="0.5">
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label" for="param-distance">
+                                        <span>Gate Distance (Line A to B)</span>
+                                        <span class="control-value" id="val-distance">10.0 meters</span>
+                                    </label>
+                                    <input type="range" class="control-slider" id="param-distance" min="5" max="30" step="0.5" value="10">
+                                </div>
+                                
+                                <div class="panel-divider"></div>
+                                
+                                <div class="live-activity-log">
+                                    <div class="log-header">
+                                        <span>REAL-TIME DETECTOR TELEMETRY LOG</span>
+                                        <span class="log-status">FLOW ACTIVE</span>
+                                    </div>
+                                    <div class="log-entries" id="log-entries-container">
+                                        <div class="log-entry system-msg">[SYSTEM] SpeedGuard Vision Engine initialized and standing by.</div>
+                                        <div class="log-entry system-msg">[SYSTEM] Upload a traffic video or trigger the synthetic simulator to begin tracking.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: PERSPECTIVE CALIBRATION & MATH -->
+                <section class="tab-content" id="calibration-tab">
+                    <div class="calibration-grid">
+                        <!-- Left Panel: Interactive Calibrator -->
+                        <div class="panel calibration-panel">
+                            <div class="panel-header">
+                                <span class="panel-title"><i class="fa-solid fa-crosshairs"></i> Oblique Road Plane Calibration</span>
+                                <span class="panel-subtitle">Drag anchors to map road perspective grid</span>
+                            </div>
+                            
+                            <div class="calibration-editor-container">
+                                <canvas id="calibration-canvas" width="640" height="640"></canvas>
+                                <div class="calibration-tip">
+                                    <i class="fa-solid fa-circle-info"></i> Drag anchors to match the lane boundary corners.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Equations & Math -->
+                        <div class="panel math-panel">
+                            <div class="panel-header">
+                                <span class="panel-title"><i class="fa-solid fa-square-root-variable"></i> Perspective Homography Equations</span>
+                            </div>
+                            
+                            <div class="panel-body math-container">
+                                <h3>1. Oblique-to-BEV Homography Transformation</h3>
+                                <p>To estimate linear speeds correctly, we construct a 3x3 projective transformation matrix $H$ mapping oblique camera pixels $(x,y)$ to flat bird's-eye coordinates $(X_w, Y_w)$:</p>
+                                
+                                <div class="equation-box">
+                                    <table class="matrix-table">
+                                        <tr>
+                                            <td>
+                                                <div class="matrix-bracket left"></div>
+                                                <table class="matrix-content">
+                                                    <tr><td>X<sub>w</sub></td></tr>
+                                                    <tr><td>Y<sub>w</sub></td></tr>
+                                                    <tr><td>1</td></tr>
+                                                </table>
+                                                <div class="matrix-bracket right"></div>
+                                            </td>
+                                            <td>&nbsp;=&nbsp; H &nbsp;&times;&nbsp;</td>
+                                            <td>
+                                                <div class="matrix-bracket left"></div>
+                                                <table class="matrix-content">
+                                                    <tr><td>x</td></tr>
+                                                    <tr><td>y</td></tr>
+                                                    <tr><td>1</td></tr>
+                                                </table>
+                                                <div class="matrix-bracket right"></div>
+                                            </td>
+                                            <td>&nbsp;=&nbsp;</td>
+                                            <td>
+                                                <div class="matrix-bracket left"></div>
+                                                <table class="matrix-content">
+                                                    <tr><td>h<sub>00</sub></td><td>h<sub>01</sub></td><td>h<sub>02</sub></td></tr>
+                                                    <tr><td>h<sub>10</sub></td><td>h<sub>11</sub></td><td>h<sub>12</sub></td></tr>
+                                                    <tr><td>h<sub>20</sub></td><td>h<sub>21</sub></td><td>h<sub>22</sub></td></tr>
+                                                </table>
+                                                <div class="matrix-bracket right"></div>
+                                            </td>
+                                            <td>&nbsp;&times;&nbsp;</td>
+                                            <td>
+                                                <div class="matrix-bracket left"></div>
+                                                <table class="matrix-content">
+                                                    <tr><td>x</td></tr>
+                                                    <tr><td>y</td></tr>
+                                                    <tr><td>1</td></tr>
+                                                </table>
+                                                <div class="matrix-bracket right"></div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <h3>2. Real-time Homography Matrix $H$</h3>
+                                <p>Recomputed dynamically based on your drag anchor points:</p>
+                                <div class="matrix-output" id="matrix-display">
+                                    [ 1.423, -0.841, 120.4 ]<br>
+                                    [ 0.124,  1.962, -80.6 ]<br>
+                                    [ 0.000, -0.002,   1.0 ]
+                                </div>
+
+                                <h3>3. Average Speed Calculation</h3>
+                                <p>Once bounded boxes cross Virtual Line A (entry) and Virtual Line B (exit), the distance traveled is projected using $H$, and speed is estimated as:</p>
+                                
+                                <div class="equation-box large">
+                                    <div class="fraction-container">
+                                        <span class="fraction-numerator">Speed (km/h) = 3.6 &times; Distance (meters)</span>
+                                        <span class="fraction-bar"></span>
+                                        <span class="fraction-denominator">Travel Time &Delta;t (seconds)</span>
+                                    </div>
+                                    <div class="eq-details">
+                                        &Delta;t = &Delta;frames / FPS
+                                    </div>
+                                </div>
+
+                                <div class="calibration-telemetry">
+                                    <div class="cal-stat-row">
+                                        <span>Image Anchors:</span>
+                                        <span id="cal-img-points" class="code-font">[(160,480), (480,480), (380,220), (260,220)]</span>
+                                    </div>
+                                    <div class="cal-stat-row">
+                                        <span>Computed Pixel Scale:</span>
+                                        <span id="cal-pixel-scale" class="value-highlight">0.0357 meters/pixel</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: ANALYTICS & DATABASE -->
+                <section class="tab-content" id="analytics-tab">
+                    <div class="analytics-layout">
+                        <!-- Top Charts Section -->
+                        <div class="charts-row">
+                            <div class="panel chart-panel">
+                                <div class="panel-header">
+                                    <span class="panel-title"><i class="fa-solid fa-chart-bar"></i> Vehicle Speed Distribution</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="speed-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="panel chart-panel">
+                                <div class="panel-header">
+                                    <span class="panel-title"><i class="fa-solid fa-chart-pie"></i> Classification Breakdown</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="class-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Database Section -->
+                        <div class="panel database-panel">
+                            <div class="panel-header">
+                                <span class="panel-title"><i class="fa-solid fa-database"></i> Violations Database Log</span>
+                                <div class="db-actions">
+                                    <button class="btn btn-secondary btn-sm" id="btn-export-csv"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                                    <button class="btn btn-danger btn-sm" id="btn-clear-db"><i class="fa-solid fa-trash-can"></i> Clear Log</button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table class="db-table" id="violations-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>Vehicle ID</th>
+                                            <th>Class</th>
+                                            <th>Speed</th>
+                                            <th>Limit</th>
+                                            <th>Excess</th>
+                                            <th>License OCR</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="violations-tbody">
+                                        <tr class="empty-row-msg">
+                                            <td colspan="8">No speed violations logged yet. Trigger the demo or upload a video!</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Script connection -->
+    <script src="app.js"></script>
+</body>
+</html>

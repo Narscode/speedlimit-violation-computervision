@@ -1,0 +1,48 @@
+model:
+  weights: yolov8s.pt
+  confidence: 0.5
+  iou: 0.45
+  classes: [2, 3, 5, 7]
+
+tracking:
+  max_age: 30
+  min_hits: 3
+  max_cosine_distance: 0.4
+
+speed:
+  fps: 25
+  line_a_y: 0.4
+  line_b_y: 0.6
+  real_world_distance: 10.0
+  speed_limit: 60
+  smoothing_window: 5
+
+input:
+  source: "data/MVI_40701/"
+  roi_points: []
+  resize: [640, 640]
+  demo_mode: true
+  demo_frames: 100
+
+output:
+  save_video: true
+  save_csv: true
+  show_live: false
+  directory: outputs
+  video_path: outputs/annotated_output.mp4
+  violations_csv: outputs/violations.csv
+  analytics_dir: outputs/analytics
+  crops_dir: outputs/violations
+
+calibration:
+  enabled: false
+  config_path: ""
+  meters_per_pixel:
+
+lpr:
+  enabled: true
+  languages: ["en"]
+  cascade_path: ""
+
+evaluation:
+  ground_truth: ""
